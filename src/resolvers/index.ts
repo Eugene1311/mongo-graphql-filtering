@@ -3,7 +3,7 @@ import Mutation from './Mutation.resolver';
 
 import {GraphQLScalarType, StringValueNode} from 'graphql';
 
-export default  {
+export default {
   Query,
   Mutation,
   DateTime: new GraphQLScalarType({
