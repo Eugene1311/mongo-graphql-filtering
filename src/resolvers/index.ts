@@ -1,9 +1,11 @@
 import Query from './Queries.resolver';
+import Mutation from './Mutation.resolver';
 
 import {GraphQLScalarType, StringValueNode} from 'graphql';
 
 export default  {
   Query,
+  Mutation,
   DateTime: new GraphQLScalarType({
     name: 'DateTime',
     description: 'An ISO-8601 encoded UTC date string.',

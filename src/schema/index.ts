@@ -1,9 +1,11 @@
 import * as  fs from 'fs';
 import * as  path from 'path';
 
-const Entities = fs.readFileSync(path.join(__dirname, './Entities.graphql')).toString();
+const Types = fs.readFileSync(path.join(__dirname, './Types.graphql')).toString();
 const Query = fs.readFileSync(path.join(__dirname, './Query.graphql')).toString();
-const Generics = fs.readFileSync(path.join(__dirname, './Generics.graphql')).toString();
-const WhereInputs = fs.readFileSync(path.join(__dirname, './generated/WhereInputs.graphql')).toString();
+const Mutation = fs.readFileSync(path.join(__dirname, './Mutation.graphql')).toString();
+const Inputs = fs.readFileSync(path.join(__dirname, './Inputs.graphql')).toString();
+const Scalars = fs.readFileSync(path.join(__dirname, './Scalars.graphql')).toString();
+const WhereInputs = fs.readFileSync(path.join(__dirname, './WhereInputs.graphql')).toString();
 
-export default [Entities, Query, Generics, WhereInputs];
+export default [Types, Query, Mutation, Inputs, Scalars, WhereInputs];
