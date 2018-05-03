@@ -1,7 +1,5 @@
 import MongodbManager from '../connector/MongodbManager';
 
-// TODO add grouping by field to query
-
 const inputFieldsToQueries: Map<string, any> = new Map([
   ['', undefined],
   ['not', {$not: {$eq: undefined}}],
@@ -25,7 +23,7 @@ export default {
   async users(root: any, {where}: any) {
     const collection = MongodbManager.getCollection('users');
 
-    console.log(where);
+    console.log('where', where);
 
     return await collection.find(generateQuery(where))
       .toArray();
@@ -34,17 +32,30 @@ export default {
 
 function generateQuery(whereInput: any): object {
   const query: any = {};
+  const groupedByFieldName: any = {};
 
   Object.keys(whereInput).forEach((key: string) => {
-    const field = key.match(/^((?!_).)*_/g)![0].replace('_', '');
-    const queryForField = inputFieldsToQueries.get(key.replace(/^((?!_).)*_/g, '')); //!.replace(/value/g, whereInput[key]);
-    // const value = JSON.parse(text);
+    const fieldName = key.match(/^((?!_).)*(_|$)/g)![0].replace('_', '');
+    const queryForField = inputFieldsToQueries.get(key.replace(/^((?!_).)*_/g, ''));
 
-    query[field] = insertValue(queryForField, whereInput[key]);
+    groupedByFieldName[fieldName] = groupedByFieldName[fieldName] || [];
+    groupedByFieldName[fieldName] = groupedByFieldName[fieldName].concat([insertValue(queryForField, whereInput[key])]);
   });
+
+  console.log('groupedByFieldName', groupedByFieldName);
+
+  Object.keys(groupedByFieldName).forEach(key => {
+    if (groupedByFieldName[key].length === 1) {
+      query[key] = groupedByFieldName[key][0];
+    } else {
+      // TODO find out is there another solution to combine queries for one field
+      query['$and'] = groupedByFieldName[key].map((query: any) => ({
+        [key]: query
+      }));
+    }
+  });
+
   console.log('query', query);
-  // db.users.find({id: {$not: {$eq: 1}}, name: {$lt: "c"}}) [ '{id: {$not: {$eq: 1}}}', '{name: {$lt: a}}' ]
-  // db.users.find({$and: [{id: {$not: {$eq: 1}}}, {id: {$in: ["5", "6"]}}], name: {$lt: "c"}})
 
   return query;
 }
