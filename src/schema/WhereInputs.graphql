@@ -1,6 +1,7 @@
 input UserWhereInput {
   AND: [UserWhereInput!]
   OR: [UserWhereInput!]
+  NOT: [UserWhereInput!]
 
   id: ID
   id_not: ID
