@@ -19,6 +19,12 @@ const inputFieldsToQueries: Map<string, any> = new Map([
   ['not_ends_with', {$regex: '.*(?<!value)$'}],
 ]);
 
+const logicalInputFieldsToQueries: Map<string, string> = new Map([
+  ['AND', '$and'],
+  ['OR', '$or'],
+  ['NOT', '$nor'],
+]);
+
 export default {
   async users(root: any, {where}: any) {
     const collection = MongodbManager.getCollection('users');
@@ -33,13 +39,22 @@ export default {
 function generateQuery(whereInput: any): object {
   const query: any = {};
   const groupedByFieldName: any = {};
+  const logicalQueries: any = {};
 
-  Object.keys(whereInput).forEach((key: string) => {
-    const fieldName = key.match(/^((?!_).)*(_|$)/g)![0].replace('_', '');
-    const queryForField = inputFieldsToQueries.get(key.replace(/^((?!_).)*_/g, ''));
+  Object.keys(whereInput).forEach((inputKey: string) => {
+    if (logicalInputFieldsToQueries.has(inputKey)) {
+      const operatorName: string = logicalInputFieldsToQueries.get(inputKey) || '$and'; // Typescript non-sense?
+
+      // TODO convert array to object for $and operator?
+      logicalQueries[operatorName] = whereInput[inputKey].map(generateQuery);
+      return;
+    }
+
+    const fieldName = inputKey.match(/^((?!_).)*(_|$)/g)![0].replace('_', '');
+    const queryForField = inputFieldsToQueries.get(inputKey.replace(/^((?!_).)*_/g, ''));
 
     groupedByFieldName[fieldName] = groupedByFieldName[fieldName] || [];
-    groupedByFieldName[fieldName] = groupedByFieldName[fieldName].concat([insertValue(queryForField, whereInput[key])]);
+    groupedByFieldName[fieldName] = groupedByFieldName[fieldName].concat([insertValue(queryForField, whereInput[inputKey])]);
   });
 
   console.log('groupedByFieldName', groupedByFieldName);
@@ -54,6 +69,8 @@ function generateQuery(whereInput: any): object {
       }));
     }
   });
+
+  Object.assign(query, logicalQueries);
 
   console.log('query', query);
 
@@ -89,6 +106,7 @@ function insertValue(queryForField: object | undefined, value: any) {
 // const UserWhereInput = {
 //   // AND: [UserWhereInput!],
 //   // OR: [UserWhereInput!],
+//   // NOT: [UserWhereInput!],
 //
 //   id: 'UniqueString', // {id: value}
 //   id_not: 'UniqueString', // {id: {$not: {$eq: value}}}
