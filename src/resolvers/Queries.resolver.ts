@@ -43,6 +43,10 @@ function generateQuery(whereInput: any): object {
 
   Object.keys(whereInput).forEach((inputKey: string) => {
     if (logicalInputFieldsToQueries.has(inputKey)) {
+      if (whereInput[inputKey].length === 0) {
+        return;
+      }
+
       const operatorName: string = logicalInputFieldsToQueries.get(inputKey) || '$and'; // Typescript non-sense?
 
       // TODO convert array to object for $and operator?
