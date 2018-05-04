@@ -23,12 +23,20 @@ const logicalInputFieldsToQueries: Map<string, string> = new Map([
   ['NOT', '$nor'],
 ]);
 
+/**
+ * Generates mongo db query from whereInput
+ * @param whereInput
+ * @return {object} query Result query
+ */
 export default function generateQuery(whereInput: any): object {
   const query: any = {};
   const groupedByFieldName: any = {};
   const logicalQueries: any = {};
 
   Object.keys(whereInput).forEach((inputKey: string) => {
+    /*
+    * generate query logical operators
+    */
     if (logicalInputFieldsToQueries.has(inputKey)) {
       if (whereInput[inputKey].length === 0) {
         return;
@@ -44,12 +52,18 @@ export default function generateQuery(whereInput: any): object {
     const fieldName = inputKey.match(/^((?!_).)*(_|$)/g)![0].replace('_', '');
     const queryForField = inputFieldsToQueries.get(inputKey.replace(/^((?!_).)*_/g, ''));
 
+    /*
+    * group queries by field
+    */
     groupedByFieldName[fieldName] = groupedByFieldName[fieldName] || [];
     groupedByFieldName[fieldName] = groupedByFieldName[fieldName].concat([insertValue(queryForField, whereInput[inputKey])]);
   });
 
   console.log('groupedByFieldName', groupedByFieldName);
 
+  /*
+  * generate query for single fields
+  */
   Object.keys(groupedByFieldName).forEach(key => {
     if (groupedByFieldName[key].length === 1) {
       query[key] = groupedByFieldName[key][0];
@@ -61,6 +75,9 @@ export default function generateQuery(whereInput: any): object {
     }
   });
 
+  /*
+  * merge queries for single fields and logical operators
+  */
   Object.assign(query, logicalQueries);
 
   console.log('query', query);
@@ -68,7 +85,13 @@ export default function generateQuery(whereInput: any): object {
   return query;
 }
 
-function insertValue(queryForField: object | undefined, value: any) {
+/**
+ * Inserts value in query taken from inputFieldsToQueries map
+ * @param {object | undefined} queryForField Initial query
+ * @param value Value to insert in query
+ * @return {object} queryForField Modified query with inserted value
+ */
+function insertValue(queryForField: object | undefined, value: any): object {
   if (typeof queryForField === 'undefined') {
     return value;
   }
