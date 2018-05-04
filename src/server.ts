@@ -26,4 +26,6 @@ app.use('/graphql', bodyParser.json(), graphqlExpress({schema}));
 
 app.use('/graphiql', graphiqlExpress({endpointURL: '/graphql'}));
 
+app.get('*', (req, res) => res.redirect('/graphiql'));
+
 app.listen(SERVER_PORT, () => console.log(`Server is running. Open http://localhost:${SERVER_PORT}/graphiql to run queries.`));
